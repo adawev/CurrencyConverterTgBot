@@ -6,6 +6,7 @@ from os import getenv
 
 from aiogram import Bot, Dispatcher, html
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -13,7 +14,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, KeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-TOKEN = "7559845248:AAFg3exmH5T9mVs-EHigaRRXB15SUBuCz7M"
+TOKEN = "7777883041:AAGS1hjoeAJbnj1sarlQ3rMwfwY5B-mXcUM"
 
 dp = Dispatcher()
 
@@ -23,6 +24,7 @@ class ConverterState(StatesGroup):
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message, state : FSMContext) -> None:
+    print(f"First name:{message.from_user.first_name} Last name:{message.from_user.last_name}")
     rkb = ReplyKeyboardBuilder()
     rkb.add(*[
         KeyboardButton(text = "USD ➡️ UZS"),
@@ -51,7 +53,7 @@ async def convert_amount_handler(message: Message, state : FSMContext) -> None:
     data = await state.get_data()
     from_currency = data.get("from_currency")
     to_currency = data.get("to_currency")
-    money = float(message.text)
+    money = message.text
     response = requests.get(f'https://open.er-api.com/v6/latest/{from_currency}')
     convert = response.json().get('rates').get(to_currency)
     await state.clear()
@@ -59,7 +61,9 @@ async def convert_amount_handler(message: Message, state : FSMContext) -> None:
 
 
 async def main() -> None:
-    bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    P = "http://proxy.server:3128"
+    session = AiohttpSession(proxy=P)
+    bot = Bot(token=TOKEN, session=session, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
     await dp.start_polling(bot)
 
